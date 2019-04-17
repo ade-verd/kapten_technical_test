@@ -1,0 +1,62 @@
+{
+  "name": "loyalty",
+  "version": "1.0.0",
+  "description": "Loyalty service technical test back-end",
+  "main": "src/app.js",
+  "scripts": {
+    "coverage": "LOGGER_LEVEL=fatal NODE_ENV=test nyc _mocha -b",
+    "eslint": "eslint src",
+    "mocha": "NODE_ENV=test _mocha -b",
+    "start": "node .",
+    "start:dev": "USE_BUNYAN_PRETTY_STREAM=true nodemon .",
+    "start:loyalty_worker": "USE_BUNYAN_PRETTY_STREAM=true node src/workers/loyalty",
+    "postinstall": "npm run apidoc",
+    "lint": "npm run prettier && npm run eslint",
+    "prettier": "prettier -l '{src,test}/**/*.{js,yml,yaml,json}'",
+    "test": "npm run lint && npm run coverage",
+    "apidoc": "apidoc -i src/api -o apidoc/"
+  },
+  "engines": {
+    "node": "=10.15"
+  },
+  "directories": {
+    "test": "test"
+  },
+  "author": "Chauffeur Privé",
+  "devDependencies": {
+    "chai": "4.0.2",
+    "dirty-chai": "2.0.1",
+    "eslint": "5.6.0",
+    "eslint-plugin-import": "2.14.0",
+    "mocha": "5.2.0",
+    "nock": "9.0.13",
+    "nodemon": "1.18.4",
+    "nyc": "13.3.0",
+    "sinon": "2.3.2",
+    "sinon-chai": "2.13.0",
+    "supertest": "3.0.0"
+  },
+  "dependencies": {
+    "amqplib": "0.5.2",
+    "apidoc": "0.17.6",
+    "body-parser": "1.18.3",
+    "chpr-logger": "3.2.0",
+    "chpr-worker": "3.2.2",
+    "co": "4.6.0",
+    "co-express": "1.2.2",
+    "eslint-config-airbnb": "17.1.0",
+    "eslint-config-cp": "5.4.0",
+    "eslint-config-prettier": "3.1.0",
+    "eslint-plugin-metrics": "1.0.4",
+    "event-stream": "4.0.1",
+    "express": "4.16.3",
+    "http-errors": "1.5.1",
+    "http-status-codes": "1.1.6",
+    "joi": "13.6.0",
+    "lodash": "4.17.11",
+    "moment": "2.22.2",
+    "mongodb": "2.2.24",
+    "prettier": "1.14.3",
+    "why-is-node-running": "2.0.3"
+  }
+}
