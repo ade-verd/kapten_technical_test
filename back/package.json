@@ -11,7 +11,7 @@
     "start:dev": "USE_BUNYAN_PRETTY_STREAM=true nodemon .",
     "start:loyalty_worker": "USE_BUNYAN_PRETTY_STREAM=true node src/workers/loyalty",
     "postinstall": "npm run apidoc",
-    "lint": "npm run prettier && npm run eslint",
+    "lint": "npm run prettier npm run eslint",
     "prettier": "prettier -l '{src,test}/**/*.{js,yml,yaml,json}'",
     "test": "npm run lint && npm run coverage",
     "apidoc": "apidoc -i src/api -o apidoc/"
@@ -41,7 +41,7 @@
     "apidoc": "0.17.6",
     "body-parser": "1.18.3",
     "chpr-logger": "3.2.0",
-    "chpr-worker": "3.2.2",
+    "chpr-worker": "3.2.3",
     "co": "4.6.0",
     "co-express": "1.2.2",
     "eslint-config-airbnb": "17.1.0",

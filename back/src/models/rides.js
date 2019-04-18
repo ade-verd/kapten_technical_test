@@ -1,6 +1,5 @@
 'use strict';
 
-const { loyaltyStatuses } = require('../constants/loyalty');
 const { getDb } = require('../lib/mongodb');
 const dateLib = require('../lib/date');
 const Joi = require('../lib/joi');
@@ -9,9 +8,9 @@ const COLLECTION_NAME = 'rides';
 
 const rideSchema = Joi.object({
   _id: Joi.objectId().required(),
-  id_rider: Joi.objectId(),
+  rider_id: Joi.objectId().required(),
   finished_at: Joi.date().default(() => dateLib.getDate(), 'time of completion'),
-  amount: Joi.number().min(0).precision(2),
+  amount: Joi.number().min(0).precision(2).required(),
 });
 
 /**

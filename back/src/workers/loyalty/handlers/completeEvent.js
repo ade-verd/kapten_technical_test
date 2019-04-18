@@ -3,7 +3,7 @@
 const logger = require('chpr-logger');
 
 const { handleMessageError } = require('../../../lib/workers');
-const riderModel = require('../../../models/rides');
+const rideModel = require('../../../models/rides');
 
 /**
  * Bus message handler for user signup events
@@ -13,10 +13,10 @@ const riderModel = require('../../../models/rides');
  * @returns {void}
  */
 async function handleCompleteEvent(message, messageFields) {
-  const { id: idRide, amount, idRider } = message.payload;
+  const { id: rideId, amount, rider_id: riderId } = message.payload;
 
   logger.info(
-    { idRide, amount, idRider },
+    { id: rideId, amount, rider_id: riderId },
     '[worker.handleCompleteEvent] Received completed ride event',
   );
 
@@ -24,13 +24,13 @@ async function handleCompleteEvent(message, messageFields) {
 
   try {
     logger.info(
-      { idRide, amount, idRider },
+      { id: rideId, amount, rider_id: riderId },
       '[worker.handleCompleteEvent] Complete Ride',
     );
-    await riderModel.insertOne({
-      _id: idRide,
-      id_rider: idRider,
+    await rideModel.insertOne({
+      _id: rideId,
       amount,
+      rider_id: riderId,
     });
   } catch (err) {
     handleMessageError(err, message, messageFields);

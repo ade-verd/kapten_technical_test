@@ -9,7 +9,7 @@ Requirements:
 ```bash
 # MongoDB
 docker pull mongo
-docker crate --name mongodb -p 27017:27017 mongo
+docker create --name mongodb -p 27017:27017 mongo
 docker start mongodb
 
 # RabbitMQ

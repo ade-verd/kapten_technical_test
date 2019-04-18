@@ -16,10 +16,11 @@ const completeSchema = Joi.object({
   type: Joi.string().required(),
   payload: Joi.object({
     id: Joi.objectId().required(),
+    rider_id: Joi.objectId().required(), 
     amount: Joi.number()
       .min(0)
-      .precision(2),
-    rider_id: Joi.objectId(), 
+      .precision(2)
+      .required(),
   }),
 });
 
