@@ -17,7 +17,6 @@ const completeSchema = Joi.object({
   payload: Joi.object({
     id: Joi.objectId().required(),
     amount: Joi.number()
-      .integer()
       .min(0)
       .precision(2),
     rider_id: Joi.objectId(), 

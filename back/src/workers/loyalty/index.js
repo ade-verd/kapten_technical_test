@@ -10,7 +10,9 @@ const mongodb = require('../../lib/mongodb');
 const Joi = require('../../lib/joi');
 
 const { handleSignupEvent } = require('./handlers');
+const { handleCompleteEvent } = require('./handlers');
 const { signupSchema } = require('./schemas');
+const { completeSchema } = require('./schemas');
 
 let worker;
 
@@ -28,6 +30,11 @@ async function start() {
           handle: handleSignupEvent,
           validate: message => Joi.assert(message, signupSchema),
           routingKey: 'rider.signup',
+        },
+        {
+          handle: handleCompleteEvent,
+          validate: message => Joi.assert(message, completeSchema),
+          routingKey: 'ride.completed',
         },
         // TODO add missing workers here
       ],

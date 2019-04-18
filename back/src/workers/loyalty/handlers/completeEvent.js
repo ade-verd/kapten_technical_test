@@ -30,7 +30,7 @@ async function handleCompleteEvent(message, messageFields) {
     await riderModel.insertOne({
       _id: idRide,
       id_rider: idRider,
-      amount: amount,
+      amount,
     });
   } catch (err) {
     handleMessageError(err, message, messageFields);
