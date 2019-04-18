@@ -11,7 +11,7 @@ const rideSchema = Joi.object({
   _id: Joi.objectId().required(),
   id_rider: Joi.objectId(),
   finished_at: Joi.date().default(() => dateLib.getDate(), 'time of completion'),
-  amount: Joi.number().integer().min(0).precision(2),
+  amount: Joi.number().min(0).precision(2),
 });
 
 /**
