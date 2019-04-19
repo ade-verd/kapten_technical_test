@@ -21,19 +21,31 @@ async function handleSignupEvent(message, messageFields) {
   );
 
   // TODO handle idempotency
+ // if (riderModel.findOneById(riderId).length > 0)
+ // {
+  //  logger.error(
+  //    { message, messageFields },
+   //   '[signupEvent.handleSignupEvent] Rider already exists. Nothing has been done',
+ //   );
+ // }
+  //else
+ // {
 
-  try {
-    logger.info(
-      { rider_id: riderId, name },
-      '[worker.handleSignupEvent] Insert rider',
-    );
-    await riderModel.insertOne({
-      _id: riderId,
-      name,
-    });
-  } catch (err) {
-    handleMessageError(err, message, messageFields);
-  }
+//    var occurence = await riderModel.find({ _id: riderId }).count();
+//    console.log("occurence:" + occurence);
+    try {
+      logger.info(
+        { rider_id: riderId, name },
+        '[worker.handleSignupEvent] Insert rider',
+      );
+      await riderModel.insertOne({
+        _id: riderId,
+        name,
+      });
+    } catch (err) {
+      handleMessageError(err, message, messageFields);
+    }
+//  }
 }
 
 module.exports = handleSignupEvent;
