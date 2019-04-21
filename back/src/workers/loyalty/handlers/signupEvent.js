@@ -1,6 +1,7 @@
 'use strict';
 
 const logger = require('chpr-logger');
+const { ObjectId } = require('mongodb');
 
 const { handleMessageError } = require('../../../lib/workers');
 const riderModel = require('../../../models/riders');
@@ -19,33 +20,31 @@ async function handleSignupEvent(message, messageFields) {
     { rider_id: riderId, name },
     '[worker.handleSignupEvent] Received user signup event',
   );
+   
+  const result = await riderModel.find({
+    _id: ObjectId.createFromHexString(riderId),
+  }).toArray();
 
-  // TODO handle idempotency
- // if (riderModel.findOneById(riderId).length > 0)
- // {
-  //  logger.error(
-  //    { message, messageFields },
-   //   '[signupEvent.handleSignupEvent] Rider already exists. Nothing has been done',
- //   );
- // }
-  //else
- // {
+  if (result.length > 0) {
+    logger.error(
+      { checkError: "Rider already exists", message, messageFields },
+      '[worker.handleSignupEvent] Rider already exists. Creation aborted',
+    );
+    throw "Rider already exists";
+  }
 
-//    var occurence = await riderModel.find({ _id: riderId }).count();
-//    console.log("occurence:" + occurence);
-    try {
-      logger.info(
-        { rider_id: riderId, name },
-        '[worker.handleSignupEvent] Insert rider',
-      );
-      await riderModel.insertOne({
-        _id: riderId,
-        name,
-      });
-    } catch (err) {
-      handleMessageError(err, message, messageFields);
-    }
-//  }
+  try {
+    logger.info(
+      { rider_id: riderId, name },
+      '[worker.handleSignupEvent] Insert rider',
+    );
+    await riderModel.insertOne({
+      _id: riderId,
+      name,
+    });
+  } catch (err) {
+    handleMessageError(err, message, messageFields);
+  }
 }
 
 module.exports = handleSignupEvent;

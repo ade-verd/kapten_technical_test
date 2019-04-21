@@ -36,7 +36,7 @@ async function start() {
           validate: message => Joi.assert(message, completeSchema),
           routingKey: 'ride.completed',
         },
-    */    // TODO add missing workers here
+  */      // TODO add missing workers here
       ],
       {
         workerName: 'loyaltyWorker',

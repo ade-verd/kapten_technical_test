@@ -9,7 +9,7 @@ const COLLECTION_NAME = 'riders';
 
 const riderSchema = Joi.object({
   _id: Joi.objectId().required(),
-  name: Joi.string().min(6),
+  name: Joi.string().min(6).required(),
   status: Joi.valid(loyaltyStatuses).default('bronze'),
   created_at: Joi.date().default(() => dateLib.getDate(), 'time of creation'),
 });
