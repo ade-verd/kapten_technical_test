@@ -14,6 +14,9 @@ const rideModel = require('../../../models/rides');
  */
 async function handleCompleteEvent(message, messageFields) {
   const { id: rideId, amount, rider_id: riderId } = message.payload;
+  const idQuery = await rideModel.find({
+    _id: ObjectId.createFromHexString(rideId),
+  }).toArray();
 
   logger.info(
     { id: rideId, amount, rider_id: riderId },
@@ -21,6 +24,13 @@ async function handleCompleteEvent(message, messageFields) {
   );
 
   // TODO handle idempotency
+  if (idQuery.length > 0) {
+    logger.error(
+      { checkError: "Ride is already completed", message, messageFields },
+      '[worker.handleCompleteEvent] This ride is already completed. Operation aborted',
+    );
+    throw "Ride is already completed";
+  }
 
   try {
     logger.info(

@@ -24,6 +24,7 @@ async function handleSignupEvent(message, messageFields) {
     '[worker.handleSignupEvent] Received user signup event',
   );
    
+  // TODO handle idempotency
   if (idQuery.length > 0) {
     logger.error(
       { checkError: "Rider already exists", message, messageFields },
