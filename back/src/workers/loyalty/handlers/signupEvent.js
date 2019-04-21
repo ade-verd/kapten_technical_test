@@ -15,17 +15,16 @@ const riderModel = require('../../../models/riders');
  */
 async function handleSignupEvent(message, messageFields) {
   const { id: riderId, name } = message.payload;
+  const idQuery = await riderModel.find({
+    _id: ObjectId.createFromHexString(riderId),
+  }).toArray();
 
   logger.info(
     { rider_id: riderId, name },
     '[worker.handleSignupEvent] Received user signup event',
   );
    
-  const result = await riderModel.find({
-    _id: ObjectId.createFromHexString(riderId),
-  }).toArray();
-
-  if (result.length > 0) {
+  if (idQuery.length > 0) {
     logger.error(
       { checkError: "Rider already exists", message, messageFields },
       '[worker.handleSignupEvent] Rider already exists. Creation aborted',

@@ -68,7 +68,7 @@ describe('workers/loyalty', () => {
       },
     };
 
-    it.skip('saves rider in db when message is valid', async () => {
+    it('saves rider in db when message is valid', async () => {
       await publish('rider.signup', message);
       await worker.wait(worker.TASK_COMPLETED);
 
@@ -85,16 +85,21 @@ describe('workers/loyalty', () => {
 
     it('does not try to save user if he is already saved in db', async () => {
       // TODO : implement this behavior
+      const errorSpy = sandbox.spy(logger, 'error');
+
       await riderModel.insertOne({ 
         _id: message.payload.id,
         name:message.payload.id
       });
-
+      
       await publish('rider.signup', message);
       await worker.wait(worker.TASK_FAILED);
       
       const riders = await riderModel.find().toArray();
-      expect(riders.length).equal(1);
+      expect(riders.length).to.equal(1);
+      expect(errorSpy.args[0][1]).to.equal(
+        '[worker.handleSignupEvent] Rider already exists. Creation aborted',
+      );
     });
     
     it('tries a second time then drops message if error during rider insertion', async () => {
