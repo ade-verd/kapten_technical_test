@@ -42,6 +42,9 @@ async function handleCompleteEvent(message, messageFields) {
       amount,
       rider_id: riderId,
     });
+
+    // TODO Update status
+
   } catch (err) {
     handleMessageError(err, message, messageFields);
   }

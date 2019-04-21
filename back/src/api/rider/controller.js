@@ -5,6 +5,7 @@ const logger = require('chpr-logger');
 
 const Joi = require('../../lib/joi');
 const riders = require('../../models/riders');
+const rides = require('../../models/rides');
 
 const { getLoyaltyInfoSchema } = require('./schemas');
 
@@ -40,6 +41,11 @@ async function getLoyaltyInfo(req, res) {
       '[loyalty#getLoyaltyInfo] User does not exist',
     );
     return res.sendStatus(HttpStatus.NOT_FOUND);
+  }
+
+  const count = await rides.find({ rider_id: riderId }).toArray();
+  if (!count) {
+
   }
 
   return res.send(rider);
