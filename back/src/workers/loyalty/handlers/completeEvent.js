@@ -7,6 +7,7 @@ const { handleMessageError } = require('../../../lib/workers');
 const rideModel = require('../../../models/rides');
 const riderModel = require('../../../models/riders');
 const { loyaltyCoef } = require('../../../constants/loyalty');
+const { loyaltyStatuses } = require('../../../constants/loyalty');
 
 /**
  * Bus message handler for user signup events
@@ -51,13 +52,58 @@ async function handleCompleteEvent(message, messageFields) {
       loyalty: await loyaltyPoints,
     });
 
-    // TODO Update status
-  //const ridesArray = await rideModel.find({ rider_id: ObjectId.createFromHexString(riderId) }).toArray();
-  //const loyaltyPoints = ridesArray.length * coef;
+    await updateStatus(riderId, status);
 
   } catch (err) {
     handleMessageError(err, message, messageFields);
   }
 }
+
+async function updateStatus(riderId, currentStatus)
+{
+  console.dir("Coucouuuuu");
+  const ridesArray = await rideModel.find({ rider_id: ObjectId.createFromHexString(riderId) }).toArray();
+  const ridesNb = ridesArray.length;
+
+  var newStatus = loyaltyStatuses[0];
+  for (var i = 0; i < loyaltyStatuses.length; i++) {
+    var status = loyaltyStatuses[i];
+    if (ridesNb >= loyaltyCoef[status].rides) {
+      newStatus = status;
+    }
+  }
+
+  const infos = {
+    riderId: riderId, 
+    currentStatus: currentStatus,
+    newStatus: newStatus,
+    ridesNb: ridesNb,
+  };
+
+  console.dir(infos);
+
+  if (newStatus !== currentStatus) {
+    try {
+      logger.info(
+        infos,
+        '[worker.updateStatus] Status updated',
+      );
+      await riderModel.updateOne(
+        //riderId,
+        ObjectId.createFromHexString(riderId),
+        { status: newStatus },
+      );
+    } catch (err) {
+      logger.error(
+        {err, infos}, 
+        '[worker.updateStatus] Status update failed',
+      );
+    }
+  } else {
+    logger.info("Status: nothing to do: ", arr);
+  }
+
+}
+
 
 module.exports = handleCompleteEvent;
