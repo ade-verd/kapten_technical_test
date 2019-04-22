@@ -2,6 +2,7 @@
 
 const HttpStatus = require('http-status-codes');
 const logger = require('chpr-logger');
+const { ObjectId } = require('mongodb');
 
 const Joi = require('../../lib/joi');
 const riders = require('../../models/riders');
@@ -34,7 +35,7 @@ async function getLoyaltyInfo(req, res) {
     '[loyalty#getLoyaltyInfo] Rider info requested',
   );
 
-  const rider = await riders.findOneById(riderId, { name: 1, status: 1 });
+  var rider = await riders.findOneById(riderId, { name: 1, status: 1 });
   if (!rider) {
     logger.info(
       { rider_id: riderId },
@@ -47,18 +48,30 @@ async function getLoyaltyInfo(req, res) {
   if (!ride) {
     logger.info(
       { rider_id: riderId },
-      '[loyalty#getLoyaltyInfo] No ride associated to this user',
+      '[loyalty#getLoyaltyInfo] Rides Query error',
     );
-    return res.sendStatus(HttpStatus.NOT_FOUND);
+    return res.sendStatus(HttpStatus.BAD_REQUEST);
+  }
+  rider.rides = ride.length;
+
+  if (rider.rides === 0) {
+    rider.loyaltyPoints = 0;
+  } else {
+    const pointsArray = await rides.collection().aggregate([
+      { $match: { "rider_id": ObjectId(riderId) }}, 
+      { $group: { _id: "$rider_id", points: { $sum: "$loyalty" } }}
+    ]).toArray();
+    if (!pointsArray) {
+      logger.info(
+        { rider_id: riderId },
+        '[loyalty#getLoyaltyInfo] Loyalty Points Query error',
+      );
+      return res.sendStatus(HttpStatus.BAD_REQUEST);
+    }
+    rider.loyaltyPoints = pointsArray[0].points;
   }
 
-  var loyalty = {
-    rider,
-    rides: ride.length, 
- 
-  } 
-
-  return res.send(loyalty);
+  return res.send(rider);
 }
 
 module.exports = {

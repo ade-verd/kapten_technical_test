@@ -49,7 +49,7 @@ async function handleCompleteEvent(message, messageFields) {
       amount,
       rider_id: riderId,
       status: status,
-      loyalty: await loyaltyPoints,
+      loyalty: loyaltyPoints,
     });
 
     await updateStatus(riderId, status);
