@@ -45,7 +45,7 @@ describe('api/rider', () => {
       expect({ body, status }).to.deep.equal({ body: {}, status: 404 });
     });
 
-    it('returns rider status', async () => {
+    it('returns rider status with no rides', async () => {
       await riders.insertOne({
         _id: riderId,
         name: 'Test user',
@@ -68,7 +68,7 @@ describe('api/rider', () => {
       });
     });
 
-    it('returns rider loyalties', async () => {
+    it('returns rider loyalties with two rides', async () => {
       await riders.insertOne({
         _id: riderId,
         name: 'Test user',
