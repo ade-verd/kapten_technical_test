@@ -60,6 +60,8 @@ describe('api/rider', () => {
           _id: riderId,
           name: 'Test user',
           status: 'silver',
+          rides: 0,
+          loyaltyPoints: 0,
         },
       });
     });
