@@ -231,39 +231,42 @@ describe('models/rides', () => {
     });
   });
 
-/*  describe('#findOneById', () => {
+  describe('#findOneById', () => {
     beforeEach(async () => {
-      await riders.insertOne({
-        _id: '000000000000000000000001',
-        name: 'Test User',
+      await rides.insertOne({
+        _id: '100000000000000000000000',
+        rider_id: '000000000000000000000001',
+        amount: 20,
         status: 'bronze',
-        created_at: date,
+        loyalty: 20,
       });
     });
 
     it('finds a rider by id', async () => {
-      const results = await riders.findOneById(
-        ObjectId.createFromHexString('000000000000000000000001'),
+      const results = await rides.findOneById(
+        ObjectId.createFromHexString('100000000000000000000000'),
       );
 
       expect(results).to.deep.equal({
-        _id: ObjectId.createFromHexString('000000000000000000000001'),
-        name: 'Test User',
+        _id: ObjectId.createFromHexString('100000000000000000000000'),
+        rider_id: ObjectId.createFromHexString('000000000000000000000001'),
+        amount: 20,
         status: 'bronze',
-        created_at: date,
+        loyalty: 20,
+        finished_at: date,
       });
     });
 
     it('applies the projections', async () => {
-      const results = await riders.findOneById(
-        ObjectId.createFromHexString('000000000000000000000001'),
-        { name: 1 },
+      const results = await rides.findOneById(
+        ObjectId.createFromHexString('100000000000000000000000'),
+        { status: 'bronze' },
       );
 
       expect(results).to.deep.equal({
-        _id: ObjectId.createFromHexString('000000000000000000000001'),
-        name: 'Test User',
+        _id: ObjectId.createFromHexString('100000000000000000000000'),
+        status: 'bronze',
       });
     });
-  });*/
+  });
 });
