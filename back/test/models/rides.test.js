@@ -53,7 +53,7 @@ describe('models/rides', () => {
         .toArray();
       expect(dbRides).to.deep.equal([
         {
-          _id: ObjectId.createFromHexString('100000000000000000000001'),
+          _id: ObjectId.createFromHexString('100000000000000000000000'),
           rider_id: ObjectId.createFromHexString('000000000000000000000001'),
           amount: 20,
           status: 'bronze',
@@ -82,13 +82,13 @@ describe('models/rides', () => {
       expect(error)
         .to.be.an('Error')
         .with.property('message')
-        .that.matches(/"name" length must be at least 6 characters long/);
+        .that.matches(/"amount" must be larger than or equal to 0/);
     });
   });
 
-/*  describe('#updateOne', () => {
-    it('updates nothing if rider does not exists', async () => {
-      const rider = await riders.updateOne(
+  describe('#updateOne', () => {
+    it('updates nothing if ride does not exists', async () => {
+      const rider = await rides.updateOne(
         ObjectId.createFromHexString('000000000000000000000001'),
         {
           status: 'bronze',
@@ -96,39 +96,43 @@ describe('models/rides', () => {
       );
 
       expect(rider.result.nModified).to.equal(0);
-      const dbRiders = await riders
+      const dbRides = await rides
         .collection()
         .find()
         .toArray();
-      expect(dbRiders).to.deep.equal([]);
+      expect(dbRides).to.deep.equal([]);
     });
 
-    it.skip('updates the model accordingly', async () => {
-      await riders.insertOne({
-        _id: '000000000000000000000001',
-        name: 'Test User',
+    it('updates the model accordingly', async () => {
+      await rides.insertOne({
+        _id: '100000000000000000000000',
+        rider_id: '000000000000000000000001',
+        amount: 20,
         status: 'bronze',
+        loyalty: 20,
       });
 
-      const riderUpdated = await riders.updateOne(
-        ObjectId.createFromHexString('000000000000000000000001'),
+      const rideUpdated = await rides.updateOne(
+        ObjectId.createFromHexString('100000000000000000000000'),
         {
           status: 'platinum',
         },
       );
 
-      expect(riderUpdated.result.nModified).to.equal(1);
+      expect(rideUpdated.result.nModified).to.equal(1);
 
-      const dbRiders = await riders
+      const dbRides = await rides
         .collection()
         .find()
         .toArray();
-      expect(dbRiders).to.deep.equal([
+      expect(dbRides).to.deep.equal([
         {
-          _id: ObjectId.createFromHexString('000000000000000000000001'),
-          name: 'Test User',
+          _id: ObjectId.createFromHexString('100000000000000000000000'),
+          rider_id: ObjectId.createFromHexString('000000000000000000000001'),
+          amount: 20,
           status: 'platinum',
-          created_at: date,
+          loyalty: 20,
+          finished_at: date,
         },
       ]);
     });
@@ -136,84 +140,98 @@ describe('models/rides', () => {
 
   describe('#find', () => {
     beforeEach(async () => {
-      await riders.collection().insertMany([
+      await rides.collection().insertMany([
         {
-          _id: ObjectId.createFromHexString('000000000000000000000001'),
-          name: 'Test User',
+          _id: ObjectId.createFromHexString('100000000000000000000000'),
+          rider_id: ObjectId.createFromHexString('000000000000000000000001'),
+          amount: 20,
           status: 'bronze',
-          created_at: date,
+          loyalty: 20,
+          finished_at: date,
         },
         {
-          _id: ObjectId.createFromHexString('000000000000000000000002'),
-          name: 'Silver User',
+          _id: ObjectId.createFromHexString('200000000000000000000000'),
+          rider_id: ObjectId.createFromHexString('000000000000000000000002'),
+          amount: 20,
           status: 'silver',
-          created_at: date,
+          loyalty: 60,
+          finished_at: date,
         },
         {
-          _id: ObjectId.createFromHexString('000000000000000000000003'),
-          name: 'Gold User',
+          _id: ObjectId.createFromHexString('300000000000000000000000'),
+          rider_id: ObjectId.createFromHexString('000000000000000000000003'),
+          amount: 20,
           status: 'gold',
-          created_at: date,
+          loyalty: 100,
+          finished_at: date,
         },
       ]);
     });
 
-    it('finds all riders', async () => {
-      const results = await riders.find().toArray();
+    it('finds all rides', async () => {
+      const results = await rides.find().toArray();
       expect(results).to.deep.equal([
         {
-          _id: ObjectId.createFromHexString('000000000000000000000001'),
-          name: 'Test User',
+          _id: ObjectId.createFromHexString('100000000000000000000000'),
+          rider_id: ObjectId.createFromHexString('000000000000000000000001'),
+          amount: 20,
           status: 'bronze',
-          created_at: date,
+          loyalty: 20,
+          finished_at: date,
         },
         {
-          _id: ObjectId.createFromHexString('000000000000000000000002'),
-          name: 'Silver User',
+          _id: ObjectId.createFromHexString('200000000000000000000000'),
+          rider_id: ObjectId.createFromHexString('000000000000000000000002'),
+          amount: 20,
           status: 'silver',
-          created_at: date,
+          loyalty: 60,
+          finished_at: date,
         },
         {
-          _id: ObjectId.createFromHexString('000000000000000000000003'),
-          name: 'Gold User',
+          _id: ObjectId.createFromHexString('300000000000000000000000'),
+          rider_id: ObjectId.createFromHexString('000000000000000000000003'),
+          amount: 20,
           status: 'gold',
-          created_at: date,
+          loyalty: 100,
+          finished_at: date,
         },
       ]);
     });
 
     it('finds all riders matching a query', async () => {
-      const results = await riders.find({ status: 'bronze' }).toArray();
+      const results = await rides.find({ status: 'bronze' }).toArray();
       expect(results).to.deep.equal([
         {
-          _id: ObjectId.createFromHexString('000000000000000000000001'),
-          name: 'Test User',
+          _id: ObjectId.createFromHexString('100000000000000000000000'),
+          rider_id: ObjectId.createFromHexString('000000000000000000000001'),
+          amount: 20,
           status: 'bronze',
-          created_at: date,
+          loyalty: 20,
+          finished_at: date,
         },
       ]);
     });
 
     it('applies the projection', async () => {
-      const results = await riders.find({}, { status: 1 }).toArray();
+      const results = await rides.find({}, { status: 1 }).toArray();
       expect(results).to.deep.equal([
         {
-          _id: ObjectId.createFromHexString('000000000000000000000001'),
+          _id: ObjectId.createFromHexString('100000000000000000000000'),
           status: 'bronze',
         },
         {
-          _id: ObjectId.createFromHexString('000000000000000000000002'),
+          _id: ObjectId.createFromHexString('200000000000000000000000'),
           status: 'silver',
         },
         {
-          _id: ObjectId.createFromHexString('000000000000000000000003'),
+          _id: ObjectId.createFromHexString('300000000000000000000000'),
           status: 'gold',
         },
       ]);
     });
   });
 
-  describe('#findOneById', () => {
+/*  describe('#findOneById', () => {
     beforeEach(async () => {
       await riders.insertOne({
         _id: '000000000000000000000001',
