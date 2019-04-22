@@ -1,9 +1,12 @@
 'use strict';
 
 const logger = require('chpr-logger');
+const { ObjectId } = require('mongodb');
 
 const { handleMessageError } = require('../../../lib/workers');
 const rideModel = require('../../../models/rides');
+const riderModel = require('../../../models/riders');
+const { loyaltyCoef } = require('../../../constants/loyalty');
 
 /**
  * Bus message handler for user signup events
@@ -14,9 +17,6 @@ const rideModel = require('../../../models/rides');
  */
 async function handleCompleteEvent(message, messageFields) {
   const { id: rideId, amount, rider_id: riderId } = message.payload;
-  const idQuery = await rideModel.find({
-    _id: ObjectId.createFromHexString(rideId),
-  }).toArray();
 
   logger.info(
     { id: rideId, amount, rider_id: riderId },
@@ -24,26 +24,36 @@ async function handleCompleteEvent(message, messageFields) {
   );
 
   // TODO handle idempotency
-  if (idQuery.length > 0) {
+  const ridesIdArray = await rideModel.find({ _id: ObjectId.createFromHexString(rideId) }).toArray();
+  if (ridesIdArray.length > 0) {
     logger.error(
       { checkError: "Ride is already completed", message, messageFields },
       '[worker.handleCompleteEvent] This ride is already completed. Operation aborted',
     );
     throw "Ride is already completed";
   }
+  
+  const riderArray = await riderModel.find({ _id: ObjectId.createFromHexString(riderId) }).toArray();
+  const status = riderArray[0]['status'];
+  const coef = loyaltyCoef[status].coef;
+  const loyaltyPoints = Math.floor(amount) * coef;
 
   try {
     logger.info(
-      { id: rideId, amount, rider_id: riderId },
+      { id: rideId, amount, rider_id: riderId, loyalty: loyaltyPoints },
       '[worker.handleCompleteEvent] Complete Ride',
     );
     await rideModel.insertOne({
       _id: rideId,
       amount,
       rider_id: riderId,
+      status: status,
+      loyalty: await loyaltyPoints,
     });
 
     // TODO Update status
+  //const ridesArray = await rideModel.find({ rider_id: ObjectId.createFromHexString(riderId) }).toArray();
+  //const loyaltyPoints = ridesArray.length * coef;
 
   } catch (err) {
     handleMessageError(err, message, messageFields);

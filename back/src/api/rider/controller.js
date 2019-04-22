@@ -42,13 +42,23 @@ async function getLoyaltyInfo(req, res) {
     );
     return res.sendStatus(HttpStatus.NOT_FOUND);
   }
-
-  const count = await rides.find({ rider_id: riderId }).toArray();
-  if (!count) {
-
+  
+  const ride = await rides.find({ rider_id: riderId }).toArray();
+  if (!ride) {
+    logger.info(
+      { rider_id: riderId },
+      '[loyalty#getLoyaltyInfo] No ride associated to this user',
+    );
+    return res.sendStatus(HttpStatus.NOT_FOUND);
   }
 
-  return res.send(rider);
+  var loyalty = {
+    rider,
+    rides: ride.length, 
+ 
+  } 
+
+  return res.send(loyalty);
 }
 
 module.exports = {

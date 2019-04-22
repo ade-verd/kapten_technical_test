@@ -1,9 +1,9 @@
 'use strict';
 
-const { loyaltyStatuses } = require('../constants/loyalty');
 const { getDb } = require('../lib/mongodb');
 const dateLib = require('../lib/date');
 const Joi = require('../lib/joi');
+const { loyaltyStatuses } = require('../constants/loyalty');
 
 const COLLECTION_NAME = 'riders';
 

@@ -3,6 +3,7 @@
 const { getDb } = require('../lib/mongodb');
 const dateLib = require('../lib/date');
 const Joi = require('../lib/joi');
+const { loyaltyStatuses } = require('../constants/loyalty');
 
 const COLLECTION_NAME = 'rides';
 
@@ -11,6 +12,8 @@ const rideSchema = Joi.object({
   rider_id: Joi.objectId().required(),
   finished_at: Joi.date().default(() => dateLib.getDate(), 'time of completion'),
   amount: Joi.number().min(0).precision(2).required(),
+  status: Joi.valid(loyaltyStatuses).required(),
+  loyalty: Joi.number().min(0).precision(0).required(),
 });
 
 /**
