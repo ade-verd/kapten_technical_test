@@ -30,7 +30,7 @@ describe('models/rides', () => {
 
   describe('#insertOne', () => {
     it('inserts a new ride record into the database', async () => {
-      const ride = await riders.insertOne({
+      const ride = await rides.insertOne({
         _id: '100000000000000000000000',
         rider_id: '000000000000000000000001',
         amount: 20,
@@ -40,7 +40,7 @@ describe('models/rides', () => {
 
       expect(ride).to.deep.equal({
         _id: ObjectId.createFromHexString('100000000000000000000000'),
-        rider_id: '000000000000000000000001',
+        rider_id: ObjectId.createFromHexString('000000000000000000000001'),
         amount: 20,
         status: 'bronze',
         loyalty: 20,
@@ -54,7 +54,7 @@ describe('models/rides', () => {
       expect(dbRides).to.deep.equal([
         {
           _id: ObjectId.createFromHexString('100000000000000000000001'),
-          rider_id: '000000000000000000000001',
+          rider_id: ObjectId.createFromHexString('000000000000000000000001'),
           amount: 20,
           status: 'bronze',
           loyalty: 20,
@@ -67,7 +67,7 @@ describe('models/rides', () => {
       let error;
 
       try {
-        await riders.insertOne({
+        await rides.insertOne({
           _id: '100000000000000000000001',
           rider_id: '000000000000000000000001',
           amount: -2,
