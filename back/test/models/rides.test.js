@@ -6,7 +6,7 @@ const { ObjectId } = require('mongodb');
 
 const dateLib = require('../../src/lib/date');
 const mongodb = require('../../src/lib/mongodb');
-const riders = require('../../src/models/rides');
+const rides = require('../../src/models/rides');
 
 describe('models/rides', () => {
   const sandbox = sinon.sandbox.create();
