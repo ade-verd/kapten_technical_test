@@ -30,7 +30,7 @@ async function handleSignupEvent(message, messageFields) {
       { checkError: "Rider already exists", message, messageFields },
       '[worker.handleSignupEvent] Rider already exists. Creation aborted',
     );
-    throw "Rider already exists";
+    throw new Error('Rider already exists');
   }
 
   try {

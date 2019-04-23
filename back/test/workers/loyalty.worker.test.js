@@ -302,7 +302,7 @@ describe('workers/loyalty', () => {
 
       expect(errorSpy.callCount).to.be.at.least(1);
       expect(errorSpy.args[0][1]).to.equal(
-        '[worker.handleCompleteEvent] Rider does not exists. Register first. Operation aborted',
+        '[worker.handleCompleteEvent] Rider does not exist. Register first. Operation aborted',
       );
     });
     

@@ -24,6 +24,7 @@
   },
   "author": "Chauffeur Privé",
   "devDependencies": {
+    "babel-eslint": "10.0.1",
     "chai": "4.0.2",
     "dirty-chai": "2.0.1",
     "eslint": "5.6.0",

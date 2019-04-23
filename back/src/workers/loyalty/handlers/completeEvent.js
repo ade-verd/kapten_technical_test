@@ -31,7 +31,7 @@ async function handleCompleteEvent(message, messageFields) {
       { checkError: "Ride is already completed", message, messageFields },
       '[worker.handleCompleteEvent] This ride is already completed. Operation aborted',
     );
-    throw "Ride is already completed";
+    throw new Error('Ride is already completed');
   }
   
   const riderArray = await riderModel.find({ _id: ObjectId.createFromHexString(riderId) }).toArray();
@@ -41,10 +41,12 @@ async function handleCompleteEvent(message, messageFields) {
       { checkError: "Rider does not exist", message, messageFields },
       '[worker.handleCompleteEvent] Rider does not exist. Register first. Operation aborted',
     );
-    throw "Rider does not exist";
+    throw new Error('Rider does not exist');
   }
-  const status = riderArray[0]['status'];
-  const coef = loyaltyCoef[status].coef;
+
+  const { status } = riderArray[0]; // destructuring form of: status = riderArray[0].status
+
+  const { coef } = loyaltyCoef[status]; // destructuring form of: coef = loyaltyCoef[status].coef
 
   const loyaltyPoints = Math.floor(amount) * coef;
 
@@ -57,7 +59,7 @@ async function handleCompleteEvent(message, messageFields) {
       _id: rideId,
       amount,
       rider_id: riderId,
-      status: status,
+      status,
       loyalty: loyaltyPoints,
     });
     await updateStatus(riderId, status);
@@ -67,25 +69,27 @@ async function handleCompleteEvent(message, messageFields) {
   }
 }
 
+/**
+ * Check if the current status has to be updated and eventually update it.
+ *
+ * @param   {Object} riderId id of the rider.
+ * @param   {Object} currentStatus current status of the rider.
+ * @returns {void}
+ */
 async function updateStatus(riderId, currentStatus)
 {
   const ridesArray = await rideModel.find({ rider_id: ObjectId.createFromHexString(riderId) }).toArray();
   const ridesNb = ridesArray.length;
 
-  var newStatus = loyaltyStatuses[0];
-  for (var i = 0; i < loyaltyStatuses.length; i++) {
-    var status = loyaltyStatuses[i];
+  let newStatus = loyaltyStatuses[0];
+  for (let i = 0; i < loyaltyStatuses.length; i += 1) {
+    const status = loyaltyStatuses[i];
     if (ridesNb >= loyaltyCoef[status].rides) {
       newStatus = status;
     }
   }
 
-  const infos = {
-    riderId: riderId, 
-    currentStatus: currentStatus,
-    newStatus: newStatus,
-    ridesNb: ridesNb,
-  };
+  const infos = { riderId, currentStatus, newStatus, ridesNb };
 
   if (newStatus !== currentStatus) {
     try {
