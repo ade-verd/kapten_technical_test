@@ -494,5 +494,29 @@ describe('workers/loyalty', () => {
       });
     });
 
+    it('fails to update status', async() => {
+      for (var i = 0; i < (loyaltyCoef.silver.rides - 1); i++) {
+        await rideModel.insertOne({ 
+          _id: new ObjectId(),
+          rider_id: message.payload.rider_id,
+          amount: 20,
+          status: 'bronze',
+          loyalty: 20,
+        });
+      }
+      
+      const error = new Error('update error');
+      sandbox.stub(riderModel, 'updateOne').rejects(error);
+      const errorSpy = sandbox.spy(logger, 'error');
+
+      await publish('ride.completed', message);
+      await worker.wait(worker.TASK_FAILED);
+
+      expect(errorSpy.callCount).to.be.at.least(1);
+      expect(errorSpy.args[0][1]).to.equal(
+        '[worker.updateStatus] Status update failed',
+      );
+    });
+
   });
 });

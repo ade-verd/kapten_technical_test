@@ -102,6 +102,7 @@ async function updateStatus(riderId, currentStatus)
         {err, infos}, 
         '[worker.updateStatus] Status update failed',
       );
+      throw err;
     }
   }
 }
