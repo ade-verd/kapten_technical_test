@@ -35,6 +35,14 @@ async function handleCompleteEvent(message, messageFields) {
   }
   
   const riderArray = await riderModel.find({ _id: ObjectId.createFromHexString(riderId) }).toArray();
+  if (riderArray.length === 0)
+  {
+    logger.error(
+      { checkError: "Rider does not exist", message, messageFields },
+      '[worker.handleCompleteEvent] Rider does not exists. Register first. Operation aborted',
+    );
+    throw "Rider does not exist";
+  }
   const status = riderArray[0]['status'];
   const coef = loyaltyCoef[status].coef;
   const loyaltyPoints = Math.floor(amount) * coef;
@@ -61,7 +69,6 @@ async function handleCompleteEvent(message, messageFields) {
 
 async function updateStatus(riderId, currentStatus)
 {
-  console.dir("Coucouuuuu");
   const ridesArray = await rideModel.find({ rider_id: ObjectId.createFromHexString(riderId) }).toArray();
   const ridesNb = ridesArray.length;
 
@@ -80,8 +87,6 @@ async function updateStatus(riderId, currentStatus)
     ridesNb: ridesNb,
   };
 
-  console.dir(infos);
-
   if (newStatus !== currentStatus) {
     try {
       logger.info(
@@ -89,7 +94,6 @@ async function updateStatus(riderId, currentStatus)
         '[worker.updateStatus] Status updated',
       );
       await riderModel.updateOne(
-        //riderId,
         ObjectId.createFromHexString(riderId),
         { status: newStatus },
       );
@@ -99,10 +103,7 @@ async function updateStatus(riderId, currentStatus)
         '[worker.updateStatus] Status update failed',
       );
     }
-  } else {
-    logger.info("Status: nothing to do: ", arr);
   }
-
 }
 
 
