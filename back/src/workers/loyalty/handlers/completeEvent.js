@@ -39,7 +39,7 @@ async function handleCompleteEvent(message, messageFields) {
   {
     logger.error(
       { checkError: "Rider does not exist", message, messageFields },
-      '[worker.handleCompleteEvent] Rider does not exists. Register first. Operation aborted',
+      '[worker.handleCompleteEvent] Rider does not exist. Register first. Operation aborted',
     );
     throw "Rider does not exist";
   }
