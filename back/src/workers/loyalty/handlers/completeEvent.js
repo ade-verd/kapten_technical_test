@@ -60,7 +60,6 @@ async function handleCompleteEvent(message, messageFields) {
       status: status,
       loyalty: loyaltyPoints,
     });
-
     await updateStatus(riderId, status);
 
   } catch (err) {

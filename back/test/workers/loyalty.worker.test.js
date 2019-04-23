@@ -10,6 +10,7 @@ const rideModel = require('../../src/models/rides');
 const dateLib = require('../../src/lib/date');
 const riders = require('../../src/models/riders');
 const rides = require('../../src/models/rides');
+const { loyaltyCoef } = require('../../src/constants/loyalty');
 const {
   start: startWorker,
   stop: stopWorker,
@@ -304,5 +305,194 @@ describe('workers/loyalty', () => {
         '[worker.handleCompleteEvent] Rider does not exists. Register first. Operation aborted',
       );
     });
+    
+    it('updates status at the right moment (19 rides: bronze)', async() => {
+      for (var i = 0; i < (loyaltyCoef.silver.rides - 1); i++) {
+        var amount = 3 + Math.floor(Math.random() * Math.floor(50));
+
+        await rideModel.insertOne({ 
+          _id: new ObjectId(),
+          rider_id: message.payload.rider_id,
+          amount: amount,
+          status: 'bronze',
+          loyalty: (amount * loyaltyCoef.bronze.coef),
+        });
+      }
+
+      const rides = await rideModel.find().toArray();
+      expect(rides.length).to.equal(loyaltyCoef.silver.rides - 1);
+
+      const rider = await riderModel.findOneById(
+        ObjectId.createFromHexString(message.payload.rider_id),
+        { status: 1 },
+      );
+      expect(rider).to.deep.equal({
+        _id: ObjectId.createFromHexString(message.payload.rider_id),
+        status: 'bronze',
+      });
+    });
+      
+    it('updates status at the right moment (20 rides: bronze to silver)', async() => {
+      for (var i = 0; i < (loyaltyCoef.silver.rides - 1); i++) {
+        await rideModel.insertOne({ 
+          _id: new ObjectId(),
+          rider_id: message.payload.rider_id,
+          amount: 20,
+          status: 'bronze',
+          loyalty: 20,
+        });
+      }
+
+      await publish('ride.completed', message);
+      await worker.wait(worker.TASK_COMPLETED);
+
+      const rides = await rideModel.find().toArray();
+      expect(rides.length).to.equal(loyaltyCoef.silver.rides);
+
+      const rider = await riderModel.findOneById(
+        ObjectId.createFromHexString(message.payload.rider_id),
+        { status: 1 },
+      );
+      expect(rider).to.deep.equal({
+        _id: ObjectId.createFromHexString(message.payload.rider_id),
+        status: 'silver',
+      });
+    });
+
+    it('updates status at the right moment (49 rides: silver)', async() => {
+      for (var i = 0; i < (loyaltyCoef.gold.rides - 2); i++) {
+        await rideModel.insertOne({ 
+          _id: new ObjectId(),
+          rider_id: message.payload.rider_id,
+          amount: 20,
+          status: 'bronze',
+          loyalty: 20,
+        });
+      }
+      
+      await publish('ride.completed', message);
+      await worker.wait(worker.TASK_COMPLETED);
+
+      const rides = await rideModel.find().toArray();
+      expect(rides.length).to.equal(loyaltyCoef.gold.rides - 1);
+
+      const rider = await riderModel.findOneById(
+        ObjectId.createFromHexString(message.payload.rider_id),
+        { status: 1 },
+      );
+      expect(rider).to.deep.equal({
+        _id: ObjectId.createFromHexString(message.payload.rider_id),
+        status: 'silver',
+      });
+    });
+
+    it('updates status at the right moment (50 rides: silver to gold)', async() => {
+      for (var i = 0; i < (loyaltyCoef.gold.rides - 1); i++) {
+        await rideModel.insertOne({
+          _id: new ObjectId(),
+          rider_id: message.payload.rider_id,
+          amount: 20,
+          status: 'bronze',
+          loyalty: 20,
+        });
+      }
+
+      await publish('ride.completed', message);
+      await worker.wait(worker.TASK_COMPLETED);
+
+      const rides = await rideModel.find().toArray();
+      expect(rides.length).to.equal(loyaltyCoef.gold.rides);
+
+      const rider = await riderModel.findOneById(
+        ObjectId.createFromHexString(message.payload.rider_id),
+        { status: 1 },
+      );
+      expect(rider).to.deep.equal({
+        _id: ObjectId.createFromHexString(message.payload.rider_id),
+        status: 'gold',
+      });
+    });
+
+    it('updates status at the right moment (99 rides: gold)', async() => {
+      for (var i = 0; i < (loyaltyCoef.platinum.rides - 2); i++) {
+        await rideModel.insertOne({ 
+          _id: new ObjectId(),
+          rider_id: message.payload.rider_id,
+          amount: 20,
+          status: 'bronze',
+          loyalty: 20,
+        });
+      }
+      
+      await publish('ride.completed', message);
+      await worker.wait(worker.TASK_COMPLETED);
+
+      const rides = await rideModel.find().toArray();
+      expect(rides.length).to.equal(loyaltyCoef.platinum.rides - 1);
+
+      const rider = await riderModel.findOneById(
+        ObjectId.createFromHexString(message.payload.rider_id),
+        { status: 1 },
+      );
+      expect(rider).to.deep.equal({
+        _id: ObjectId.createFromHexString(message.payload.rider_id),
+        status: 'gold',
+      });
+    });
+
+    it('updates status at the right moment (100 rides: gold to platinum)', async() => {
+      for (var i = 0; i < (loyaltyCoef.platinum.rides - 1); i++) {
+        await rideModel.insertOne({
+          _id: new ObjectId(),
+          rider_id: message.payload.rider_id,
+          amount: 20,
+          status: 'bronze',
+          loyalty: 20,
+        });
+      }
+
+      await publish('ride.completed', message);
+      await worker.wait(worker.TASK_COMPLETED);
+
+      const rides = await rideModel.find().toArray();
+      expect(rides.length).to.equal(loyaltyCoef.platinum.rides);
+
+      const rider = await riderModel.findOneById(
+        ObjectId.createFromHexString(message.payload.rider_id),
+        { status: 1 },
+      );
+      expect(rider).to.deep.equal({
+        _id: ObjectId.createFromHexString(message.payload.rider_id),
+        status: 'platinum',
+      });
+    });
+
+    it('updates status at the right moment (> 100 rides: platinum)', async() => {
+      for (var i = 0; i < (loyaltyCoef.platinum.rides + 50); i++) {
+        await rideModel.insertOne({
+          _id: new ObjectId(),
+          rider_id: message.payload.rider_id,
+          amount: 20,
+          status: 'bronze',
+          loyalty: 20,
+        });
+      }
+
+      await publish('ride.completed', message);
+      await worker.wait(worker.TASK_COMPLETED);
+
+      const rides = await rideModel.find().toArray();
+      expect(rides.length).to.be.at.least(loyaltyCoef.platinum.rides);
+
+      const rider = await riderModel.findOneById(
+        ObjectId.createFromHexString(message.payload.rider_id),
+        { status: 1 },
+      );
+      expect(rider).to.deep.equal({
+        _id: ObjectId.createFromHexString(message.payload.rider_id),
+        status: 'platinum',
+      });
+    });
+
   });
 });
