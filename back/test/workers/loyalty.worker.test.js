@@ -62,7 +62,7 @@ describe('workers/loyalty', () => {
     await channel.deleteExchange(exchangeName);
     await connection.close();
   });
-/*
+
   describe('#handleSignupEvent', () => {
     const message = {
       type: 'rider_signed_up',
@@ -101,6 +101,7 @@ describe('workers/loyalty', () => {
       
       const riders = await riderModel.find().toArray();
       expect(riders.length).to.equal(1);
+      expect(errorSpy.callCount).to.be.at.least(1);
       expect(errorSpy.args[0][1]).to.equal(
         '[worker.handleSignupEvent] Rider already exists. Creation aborted',
       );
@@ -160,7 +161,7 @@ describe('workers/loyalty', () => {
       expect(riders).to.deep.equal([]);
     });
   });
-*/  
+  
   describe('#handleCompleteEvent', () => {
     const message = {
       type: 'ride_completed',
@@ -171,13 +172,15 @@ describe('workers/loyalty', () => {
       },
     };
 
-    it('saves ride in db when message is valid', async () => {
+    beforeEach(async () => {
       await riders.insertOne({
-        _id: '000000000000000000000001',
+        _id: message.payload.rider_id,
         name: 'Test User',
         status: 'bronze',
       });
+    });
 
+    it('saves ride in db when message is valid', async () => {
       await publish('ride.completed', message);
       await worker.wait(worker.TASK_COMPLETED);
 
@@ -194,80 +197,112 @@ describe('workers/loyalty', () => {
       ]);
     });
 
-    it.skip('does not try to save ride if it is already saved in db', async () => {
+    it('does not try to save ride if it is already saved in db', async () => {
       const errorSpy = sandbox.spy(logger, 'error');
-
-      await riderModel.insertOne({ 
+      
+      await rideModel.insertOne({ 
         _id: message.payload.id,
-        name:message.payload.id
+        rider_id: message.payload.rider_id,
+        amount: 20,
+        status: 'bronze',
+        loyalty: 20,
       });
       
-      await publish('rider.signup', message);
+      await publish('ride.completed', message);
       await worker.wait(worker.TASK_FAILED);
       
-      const riders = await riderModel.find().toArray();
-      expect(riders.length).to.equal(1);
+      const rides = await rideModel.find().toArray();
+      expect(rides.length).to.equal(1);
       expect(errorSpy.args[0][1]).to.equal(
-        '[worker.handleSignupEvent] Rider already exists. Creation aborted',
+        '[worker.handleCompleteEvent] This ride is already completed. Operation aborted',
       );
     });
     
-    it.skip('tries a second time then drops message if error during rider insertion', async () => {
+    it('tries a second time then drops message if error during rider insertion', async () => {
       const error = new Error('insertion error');
-      sandbox.stub(riderModel, 'insertOne').rejects(error);
+      sandbox.stub(rideModel, 'insertOne').rejects(error);
       const errorSpy = sandbox.spy(logger, 'error');
-
-      await publish('rider.signup', message);
+      
+      await publish('ride.completed', message);
       await worker.wait(worker.TASK_FAILED);
 
-      const riders = await riderModel.find().toArray();
-      expect(riders).to.deep.equal([]);
+      const rides = await rideModel.find().toArray();
+      expect(rides).to.deep.equal([]);
       expect(errorSpy.callCount).to.equal(1);
       expect(errorSpy.args[0][1]).to.equal(
         '[worker.handleMessageError] Could not handle message for the second time, dropping it',
       );
     });
 
-    it.skip('fails validation if no id in message', async () => {
-      await publish('rider.signup', _.omit(message.payload, 'id'));
+    it('fails validation if no id in message', async () => {
+      await publish('ride.completed', _.omit(message.payload, 'id'));
       await worker.wait(worker.TASK_FAILED);
 
-      const riders = await riderModel.find().toArray();
-      expect(riders).to.deep.equal([]);
+      const rides = await rideModel.find().toArray();
+      expect(rides).to.deep.equal([]);
     });
 
-    it.skip('fails validation if id is not a valid ObjectId', async () => {
-      await publish('rider.signup', {
+    it('fails validation if no rider_id in message', async () => {
+      await publish('ride.completed', _.omit(message.payload, 'rider_id'));
+      await worker.wait(worker.TASK_FAILED);
+
+      const rides = await rideModel.find().toArray();
+      expect(rides).to.deep.equal([]);
+    });
+
+    it('fails validation if no amount in message', async () => {
+      await publish('ride.completed', _.omit(message.payload, 'amount'));
+      await worker.wait(worker.TASK_FAILED);
+
+      const rides = await rideModel.find().toArray();
+      expect(rides).to.deep.equal([]);
+    });
+
+    it('fails validation if id is not a valid ObjectId (test with rideId)', async () => {
+      await publish('ride.completed', {
         type: message.type,
         payload: { ...message.payload, id: 'not valid' },
       });
       await worker.wait(worker.TASK_FAILED);
 
-      const riders = await riderModel.find().toArray();
-      expect(riders).to.deep.equal([]);
+      const rides = await rideModel.find().toArray();
+      expect(rides).to.deep.equal([]);
     });
 
-    it.skip('fails validation if no name in message', async () => {
-      await publish('rider.signup', _.omit(message.payload, 'name'));
-      await worker.wait(worker.TASK_FAILED);
-
-      const riders = await riderModel.find().toArray();
-      expect(riders).to.deep.equal([]);
-    });
-
-    it.skip('fails validation if name contains less than 6 letters', async () => {
-      await publish('rider.signup', {
+    it('fails validation if id is not a valid ObjectId (test with riderId)', async () => {
+      await publish('ride.completed', {
         type: message.type,
-        payload: { ...message.payload, name: 'short' },
+        payload: { ...message.payload, rider_id: 'not valid' },
       });
       await worker.wait(worker.TASK_FAILED);
 
-      const riders = await riderModel.find().toArray();
-      expect(riders).to.deep.equal([]);
+      const rides = await rideModel.find().toArray();
+      expect(rides).to.deep.equal([]);
     });
 
-    it.skip('fails validation if rider is not registered', async() => {
+    it('fails validation if amount is negative', async () => {
+      await publish('ride.completed', {
+        type: message.type,
+        payload: { ...message.payload, amount: -2 },
+      });
+      await worker.wait(worker.TASK_FAILED);
+
+      const rides = await rideModel.find().toArray();
+      expect(rides).to.deep.equal([]);
+    });
+
+    it('fails validation if rider is not registered', async() => {
       // some events are in the wrong order (ride create before rider signup)
+      const errorSpy = sandbox.spy(logger, 'error');
+      await riderModel.collection().remove({});
+
+      await publish('ride.completed', message);
+      await worker.wait(worker.TASK_FAILED);
+
+      expect(errorSpy.callCount).to.be.at.least(1);
+      expect(errorSpy.args[0][1]).to.equal(
+        '[worker.handleCompleteEvent] Rider does not exists. Register first. Operation aborted',
+      );
     });
   });
 });

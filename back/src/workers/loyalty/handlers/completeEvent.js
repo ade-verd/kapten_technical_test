@@ -45,6 +45,7 @@ async function handleCompleteEvent(message, messageFields) {
   }
   const status = riderArray[0]['status'];
   const coef = loyaltyCoef[status].coef;
+
   const loyaltyPoints = Math.floor(amount) * coef;
 
   try {
