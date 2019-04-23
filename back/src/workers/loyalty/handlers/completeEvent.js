@@ -45,7 +45,6 @@ async function handleCompleteEvent(message, messageFields) {
   }
 
   const { status } = riderArray[0]; // destructuring form of: status = riderArray[0].status
-
   const { coef } = loyaltyCoef[status]; // destructuring form of: coef = loyaltyCoef[status].coef
 
   const loyaltyPoints = Math.floor(amount) * coef;

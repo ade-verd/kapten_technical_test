@@ -1,3 +1,5 @@
+'use strict'
+
 const { expect } = require('chai');
 const sinon = require('sinon');
 const _ = require('lodash');
@@ -8,8 +10,6 @@ const logger = require('chpr-logger');
 const riderModel = require('../../src/models/riders');
 const rideModel = require('../../src/models/rides');
 const dateLib = require('../../src/lib/date');
-const riders = require('../../src/models/riders');
-const rides = require('../../src/models/rides');
 const { loyaltyCoef } = require('../../src/constants/loyalty');
 const {
   start: startWorker,
@@ -20,13 +20,14 @@ const exchangeName = 'events';
 let channel;
 
 /**
- * Publish a message on an AMQP queue
- * @param {String} routingKey routing key to publish to
- * @param {Object} payload the message payload
- * @returns {Promise<void>}
+ * Publish a message on an AMQP queue.
+ *
+ * @param {String} routingKey routing key to publish to.
+ * @param {Object} payload the message payload.
+ * @returns {Promise<void>} /
  */
 async function publish(routingKey, payload) {
-  const message = new Buffer(JSON.stringify(payload));
+  const message = new Buffer.from(JSON.stringify(payload)); // eslint-disable-line 
   await channel.publish(exchangeName, routingKey, message);
 }
 
@@ -42,8 +43,8 @@ describe('workers/loyalty', () => {
     channel = await connection.createChannel();
     await channel.deleteQueue('loyaltyQueue');
     worker = await startWorker();
-    await riders.createIndexes();
-    await rides.createIndexes();
+    await riderModel.createIndexes();
+    await rideModel.createIndexes();
   });
 
   beforeEach(async () => {
@@ -53,7 +54,7 @@ describe('workers/loyalty', () => {
     sandbox.stub(dateLib, 'getDate').returns(date);
   });
 
-  afterEach(async () => {
+  afterEach(() => {
     sandbox.restore();
   });
 
@@ -174,7 +175,7 @@ describe('workers/loyalty', () => {
     };
 
     beforeEach(async () => {
-      await riders.insertOne({
+      await riderModel.insertOne({
         _id: message.payload.rider_id,
         name: 'Test User',
         status: 'bronze',
@@ -306,14 +307,15 @@ describe('workers/loyalty', () => {
       );
     });
     
+    /* eslint-disable no-await-in-loop */
     it('updates status at the right moment (19 rides: bronze)', async() => {
-      for (var i = 0; i < (loyaltyCoef.silver.rides - 1); i++) {
-        var amount = 3 + Math.floor(Math.random() * Math.floor(50));
+      for (let i = 0; i < (loyaltyCoef.silver.rides - 1); i += 1) {
+        const amount = 3 + Math.floor(Math.random() * Math.floor(50));
 
         await rideModel.insertOne({ 
           _id: new ObjectId(),
           rider_id: message.payload.rider_id,
-          amount: amount,
+          amount,
           status: 'bronze',
           loyalty: (amount * loyaltyCoef.bronze.coef),
         });
@@ -333,7 +335,7 @@ describe('workers/loyalty', () => {
     });
       
     it('updates status at the right moment (20 rides: bronze to silver)', async() => {
-      for (var i = 0; i < (loyaltyCoef.silver.rides - 1); i++) {
+      for (let i = 0; i < (loyaltyCoef.silver.rides - 1); i += 1) {
         await rideModel.insertOne({ 
           _id: new ObjectId(),
           rider_id: message.payload.rider_id,
@@ -360,7 +362,7 @@ describe('workers/loyalty', () => {
     });
 
     it('updates status at the right moment (49 rides: silver)', async() => {
-      for (var i = 0; i < (loyaltyCoef.gold.rides - 2); i++) {
+      for (let i = 0; i < (loyaltyCoef.gold.rides - 2); i += 1) {
         await rideModel.insertOne({ 
           _id: new ObjectId(),
           rider_id: message.payload.rider_id,
@@ -387,7 +389,7 @@ describe('workers/loyalty', () => {
     });
 
     it('updates status at the right moment (50 rides: silver to gold)', async() => {
-      for (var i = 0; i < (loyaltyCoef.gold.rides - 1); i++) {
+      for (let i = 0; i < (loyaltyCoef.gold.rides - 1); i += 1) {
         await rideModel.insertOne({
           _id: new ObjectId(),
           rider_id: message.payload.rider_id,
@@ -414,7 +416,7 @@ describe('workers/loyalty', () => {
     });
 
     it('updates status at the right moment (99 rides: gold)', async() => {
-      for (var i = 0; i < (loyaltyCoef.platinum.rides - 2); i++) {
+      for (let i = 0; i < (loyaltyCoef.platinum.rides - 2); i += 1) {
         await rideModel.insertOne({ 
           _id: new ObjectId(),
           rider_id: message.payload.rider_id,
@@ -441,7 +443,7 @@ describe('workers/loyalty', () => {
     });
 
     it('updates status at the right moment (100 rides: gold to platinum)', async() => {
-      for (var i = 0; i < (loyaltyCoef.platinum.rides - 1); i++) {
+      for (let i = 0; i < (loyaltyCoef.platinum.rides - 1); i += 1) {
         await rideModel.insertOne({
           _id: new ObjectId(),
           rider_id: message.payload.rider_id,
@@ -468,7 +470,7 @@ describe('workers/loyalty', () => {
     });
 
     it('updates status at the right moment (> 100 rides: platinum)', async() => {
-      for (var i = 0; i < (loyaltyCoef.platinum.rides + 50); i++) {
+      for (let i = 0; i < (loyaltyCoef.platinum.rides + 50); i += 1) {
         await rideModel.insertOne({
           _id: new ObjectId(),
           rider_id: message.payload.rider_id,
@@ -495,7 +497,7 @@ describe('workers/loyalty', () => {
     });
 
     it('fails to update status', async() => {
-      for (var i = 0; i < (loyaltyCoef.silver.rides - 1); i++) {
+      for (let i = 0; i < (loyaltyCoef.silver.rides - 1); i += 1) {
         await rideModel.insertOne({ 
           _id: new ObjectId(),
           rider_id: message.payload.rider_id,
