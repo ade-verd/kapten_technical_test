@@ -45,13 +45,6 @@ async function getLoyaltyInfo(req, res) {
   }
   
   const ride = await rides.find({ rider_id: riderId }).toArray();
-  if (!ride) {
-    logger.info(
-      { rider_id: riderId },
-      '[loyalty#getLoyaltyInfo] Rides Query error',
-    );
-    return res.sendStatus(HttpStatus.BAD_REQUEST);
-  }
   rider.rides = ride.length;
 
   if (rider.rides === 0) {
@@ -61,13 +54,6 @@ async function getLoyaltyInfo(req, res) {
       { $match: { "rider_id": ObjectId(riderId) }}, 
       { $group: { _id: "$rider_id", points: { $sum: "$loyalty" } }}
     ]).toArray();
-    if (!pointsArray) {
-      logger.info(
-        { rider_id: riderId },
-        '[loyalty#getLoyaltyInfo] Loyalty Points Query error',
-      );
-      return res.sendStatus(HttpStatus.BAD_REQUEST);
-    }
     rider.loyaltyPoints = pointsArray[0].points;
   }
 
